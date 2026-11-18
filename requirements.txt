@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+pydantic
+httpx
+python-dotenv
+pytest
+python-multipart
+python-docx
+pdfplumber
+Pillow
+httpx
+python-dotenv
