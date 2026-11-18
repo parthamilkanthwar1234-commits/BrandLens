@@ -6,3 +6,4 @@ python-docx
 pdfplumber
 Pillow
 httpx
+python-dotenv
