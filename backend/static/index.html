@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BrandLens</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230F1A44'/%3E%3Ccircle cx='15' cy='15' r='7' fill='none' stroke='%23fff' stroke-width='2.5'/%3E%3Cpath d='M20 20l6 6' stroke='%237C9CFF' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+@font-face{font-family:"Newsreader";src:url(/static/fonts/newsreader-latin-wght-normal.woff2) format("woff2");font-weight:200 800;font-style:normal;font-display:swap}
+@font-face{font-family:"Newsreader";src:url(/static/fonts/newsreader-latin-wght-italic.woff2) format("woff2");font-weight:200 800;font-style:italic;font-display:swap}
+@font-face{font-family:"Instrument Sans";src:url(/static/fonts/instrument-sans-latin-wght-normal.woff2) format("woff2");font-weight:400 700;font-style:normal;font-display:swap}
+:root{
+ --canvas:#EDEFF6;--sheet:#FFFFFF;--ink:#101936;--text:#1d2744;--muted:#5a6486;--line:#dde1ee;--line2:#c9cfe3;
+ --rail:#0F1A44;--rail2:#1b2a63;--pencil:#3050F0;--pencil-d:#2038c4;--pencil-l:#e7ecff;
+ --red:#c4281c;--red-l:#fdeceb;--red-m:#f6b9b4;--amb:#9a5b00;--amb-l:#fff3da;--amb-m:#f2c36b;--grn:#0b6b45;--grn-l:#e0f5ea;--blu:#3f5fa6;--blu-l:#e8eefb;
+ --serif:"Newsreader",Georgia,"Times New Roman",serif;--sans:"Instrument Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+ --r:12px;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;font:15px/1.55 var(--sans);color:var(--text);background:var(--canvas)}
+button,input,textarea,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid #7d96ff;outline-offset:2px;border-radius:6px}
+.app{display:grid;grid-template-columns:248px minmax(0,1fr);min-height:100vh}
+.app>*{min-width:0}
+body{overflow-x:hidden}
+/* rail */
+.rail{background:var(--rail);color:#fff;padding:22px 16px;display:flex;flex-direction:column;gap:22px;position:sticky;top:0;height:100vh}
+.logo{display:flex;align-items:center;gap:10px;padding:0 8px}
+.logo b{font:600 23px/1 var(--serif);letter-spacing:.2px}
+.logo small{display:block;color:#9fb0ee;font-size:12px;margin-top:3px}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav button{display:flex;align-items:center;gap:12px;background:none;border:0;color:#c5cffa;padding:10px 12px;border-radius:9px;cursor:pointer;font-weight:500;text-align:left}
+.nav button:hover{background:rgba(255,255,255,.07)}
+.nav button[aria-current=page]{background:#fff;color:var(--rail)}
+.nav svg{flex:none}
+.acting{margin-top:auto}
+.acting h3{font:500 12px/1.2 var(--sans);color:#9fb0ee;margin:0 8px 8px}
+.roles{display:flex;flex-direction:column;gap:6px}
+.role{display:flex;gap:10px;align-items:center;text-align:left;background:rgba(255,255,255,.05);border:1px solid transparent;color:#e6ebff;padding:9px 10px;border-radius:10px;cursor:pointer}
+.role:hover{background:rgba(255,255,255,.1)}
+.role[aria-pressed=true]{border-color:#7C9CFF;background:rgba(124,156,255,.16)}
+.role i{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font:600 13px var(--sans);font-style:normal;background:#2c3f86;flex:none}
+.role[aria-pressed=true] i{background:var(--pencil)}
+.role b{display:block;font-weight:600;font-size:14px;line-height:1.2}
+.role span{font-size:12px;color:#aab8f0}
+.demo{font-size:12px;color:#9fb0ee;margin:12px 8px 0}
+/* main */
+main{padding:26px 34px 70px;min-width:0}
+.top{display:flex;align-items:flex-end;gap:18px;flex-wrap:wrap;margin-bottom:22px}
+.top h1{font:600 32px/1.1 var(--serif);color:var(--ink);margin:0;letter-spacing:-.2px}
+.top p{margin:6px 0 0;color:var(--muted);max-width:62ch}
+.sp{flex:1}
+.btn{display:inline-flex;align-items:center;gap:8px;border:1px solid transparent;border-radius:9px;padding:9px 16px;font-weight:600;cursor:pointer;background:var(--pencil);color:#fff;transition:background .15s,transform .05s}
+.btn:hover{background:var(--pencil-d)}.btn:active{transform:translateY(1px)}
+.btn.ghost{background:#fff;color:var(--ink);border-color:var(--line2)}.btn.ghost:hover{background:#f4f6fd}
+.btn.dark{background:var(--ink)}.btn.dark:hover{background:#000a2c}
+.btn.good{background:var(--grn)}.btn.good:hover{background:#075636}
+.btn.sm{padding:5px 11px;font-size:13px;border-radius:8px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.chip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:2px 10px;font-size:12.5px;font-weight:600;white-space:nowrap}
+.c-draft{background:#e9ecf6;color:#3a4566}.c-in_review{background:var(--amb-l);color:var(--amb)}.c-approved{background:var(--grn-l);color:var(--grn)}.c-changes_requested{background:var(--red-l);color:var(--red)}
+.c-high{background:var(--red-l);color:var(--red)}.c-medium{background:var(--amb-l);color:var(--amb)}.c-low{background:var(--blu-l);color:var(--blu)}
+.c-human{background:var(--pencil-l);color:var(--pencil-d)}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.dot.high{background:var(--red)}.dot.medium{background:#d98a00}.dot.low{background:var(--blu)}
+.err{background:var(--red-l);border:1px solid var(--red-m);color:#8f1c13;border-radius:10px;padding:10px 14px;margin-bottom:16px;font-weight:500}
+.note{background:var(--pencil-l);border:1px solid #c5d0ff;color:#1b2f9e;border-radius:10px;padding:10px 14px;margin-bottom:16px}
+.panel{background:var(--sheet);border:1px solid var(--line);border-radius:var(--r);padding:20px}
+.panel h2{font:600 19px/1.2 var(--serif);margin:0 0 12px;color:var(--ink)}
+/* composer */
+.compose{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:22px;align-items:start}
+.paper{background:var(--sheet);border:1px solid var(--line);border-radius:var(--r);box-shadow:0 1px 0 rgba(16,25,54,.04),0 14px 34px -22px rgba(16,25,54,.35);padding:26px 30px}
+.field{display:block;margin-bottom:14px}
+.field>span{display:block;font-weight:600;font-size:13.5px;margin-bottom:5px;color:var(--ink)}
+.in{width:100%;border:1px solid var(--line2);background:#fff;border-radius:9px;padding:9px 12px}
+.in:focus{border-color:var(--pencil);outline:3px solid #cbd6ff;outline-offset:0}
+.seg3{display:inline-flex;border:1px solid var(--line2);border-radius:9px;overflow:hidden;background:#fff}
+.seg3 button{border:0;background:none;padding:7px 14px;cursor:pointer;font-weight:500;color:var(--muted)}
+.seg3 button+button{border-left:1px solid var(--line2)}
+.seg3 button[aria-pressed=true]{background:var(--ink);color:#fff}
+textarea.doc{width:100%;min-height:250px;resize:vertical;border:1px solid var(--line2);border-radius:9px;padding:16px 18px;font:400 18px/1.7 var(--serif);background:#fffefb;color:#18203a}
+textarea.doc:focus{border-color:var(--pencil);outline:3px solid #cbd6ff;outline-offset:0}
+.drop{display:flex;align-items:center;gap:12px;border:1.5px dashed var(--line2);border-radius:10px;padding:12px 14px;cursor:pointer;color:var(--muted);background:#fafbff}
+.drop:hover,.drop.over{border-color:var(--pencil);background:var(--pencil-l);color:var(--pencil-d)}
+.drop input{display:none}
+details.more{margin:6px 0 14px}
+details.more summary{cursor:pointer;font-weight:600;color:var(--ink);padding:6px 0}
+.samples{display:flex;flex-direction:column;gap:10px}
+.sample{display:block;width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-radius:12px;padding:13px 15px;cursor:pointer;transition:border-color .15s,box-shadow .15s}
+.sample:hover{border-color:var(--pencil);box-shadow:0 8px 20px -14px rgba(48,80,240,.6)}
+.sample b{font:600 16.5px/1.3 var(--serif);color:var(--ink)}
+.sample p{margin:5px 0 0;font:400 14.5px/1.45 var(--serif);color:var(--muted)}
+.sample .chip{margin-top:8px}
+.covers{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;margin:0;padding:0;list-style:none;color:var(--muted);font-size:14px}
+.covers li{display:flex;gap:8px;align-items:center}
+/* document header */
+.dochead{display:flex;gap:22px;align-items:center;flex-wrap:wrap;margin-bottom:18px}
+.dochead h1{font:600 30px/1.15 var(--serif);margin:0;color:var(--ink)}
+.meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;color:var(--muted)}
+.vtab{border:1px solid var(--line2);background:#fff;border-radius:7px;padding:1px 9px;font-size:13px;font-weight:600;cursor:pointer;color:var(--muted)}
+.vtab[aria-current=true]{background:var(--ink);border-color:var(--ink);color:#fff}
+.fit{display:flex;gap:14px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:14px;padding:8px 16px 8px 10px}
+.fit svg{display:block}
+.fit b{display:block;font:600 15px/1.2 var(--sans);color:var(--ink)}
+.fit span{font-size:13px;color:var(--muted)}
+.steps{display:flex;align-items:center;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+.step{display:flex;align-items:center;gap:8px;font-weight:600;color:var(--muted)}
+.step i{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font:600 12px var(--sans);font-style:normal;background:#e1e5f2;color:var(--muted)}
+.step.done{color:var(--grn)}.step.done i{background:var(--grn);color:#fff}
+.step.now{color:var(--ink)}.step.now i{background:var(--ink);color:#fff}
+.step.bad{color:var(--red)}.step.bad i{background:var(--red);color:#fff}
+.steps .bar{width:34px;height:2px;background:var(--line2)}
+.next{display:flex;gap:16px;align-items:center;flex-wrap:wrap;background:var(--ink);color:#fff;border-radius:14px;padding:14px 18px;margin-bottom:22px}
+.next p{margin:0;flex:1;min-width:240px}
+.next b{color:#fff}
+.next textarea{width:100%;border-radius:8px;border:0;padding:8px 10px;min-height:52px;color:var(--text)}
+.next .btn.ghost{background:transparent;color:#fff;border-color:#6b7bb8}.next .btn.ghost:hover{background:rgba(255,255,255,.1)}
+.next .btn{background:#fff;color:var(--ink)}.next .btn:hover{background:#e7ecff}
+.next .btn.good{background:#2bbf82;color:#04281a}.next .btn.good:hover{background:#4cd39b}
+.next .btn:disabled{opacity:.4}
+/* proof */
+.proof{display:grid;grid-template-columns:minmax(0,1fr) 350px;gap:30px;align-items:start}
+.sheetwrap{min-width:0}
+@media(min-width:1061px){.sheet{position:sticky;top:16px}}
+.sheetbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.sheet{background:var(--sheet);border:1px solid var(--line);border-radius:4px;box-shadow:0 1px 0 rgba(16,25,54,.05),0 22px 40px -28px rgba(16,25,54,.45);padding:44px 52px 52px;position:relative}
+.sheet .kicker{display:flex;gap:10px;align-items:center;margin-bottom:18px;color:var(--muted);font-size:13px}
+.sheet .body{font:400 19.5px/1.78 var(--serif);color:#141c36;white-space:pre-wrap;overflow-wrap:anywhere;max-width:66ch}
+.seg{border-radius:3px;cursor:pointer;transition:background .15s}
+.seg.ul{text-decoration-line:underline;text-decoration-style:wavy;text-decoration-thickness:1.6px;text-underline-offset:5px}
+.seg.ul.high{text-decoration-color:var(--red);background:var(--red-l)}
+.seg.ul.medium{text-decoration-color:#d98a00;background:var(--amb-l)}
+.seg.ul.low{text-decoration-style:dotted;text-decoration-color:var(--blu);background:var(--blu-l)}
+.seg.tint.high{background:var(--red-l)}.seg.tint.medium{background:var(--amb-l)}.seg.tint.low{background:var(--blu-l)}
+.seg.focus,.seg:hover{background:#ffe08a !important}
+.badge{font:700 11px/1 var(--sans);display:inline-grid;place-items:center;min-width:17px;height:17px;border-radius:9px;margin:0 2px 0 1px;vertical-align:super;color:#fff;cursor:pointer}
+.badge.high{background:var(--red)}.badge.medium{background:#c77700}.badge.low{background:var(--blu)}
+.badge.focus{outline:3px solid #ffd45c}
+.margin{position:relative;min-height:40px}
+.mcard{position:absolute;left:0;right:0}
+.fcard{background:#fff;border:1px solid var(--line);border-left:4px solid var(--line2);border-radius:11px;padding:10px 13px 11px;box-shadow:0 8px 22px -18px rgba(16,25,54,.5);transition:border-color .15s,box-shadow .15s}
+.fcard.high{border-left-color:var(--red)}.fcard.medium{border-left-color:#d98a00}.fcard.low{border-left-color:var(--blu)}
+.fcard.focus{box-shadow:0 0 0 3px #ffd45c,0 12px 26px -16px rgba(16,25,54,.55)}
+.fcard.settled{opacity:.62}
+.fhead{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.fno{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font:700 11px var(--sans);color:#fff;flex:none}
+.fno.high{background:var(--red)}.fno.medium{background:#c77700}.fno.low{background:var(--blu)}
+.fcat{font-weight:600;color:var(--ink)}
+.freason{margin:5px 0 0;font-size:14px;line-height:1.45}
+.rule{margin:6px 0 0;font-size:13px;color:var(--muted);display:flex;gap:8px;align-items:flex-start}
+.rule code{font:600 12px var(--sans);background:var(--ink);color:#fff;border-radius:6px;padding:2px 7px;flex:none;margin-top:2px}
+.rule em{font:400 italic 14px/1.4 var(--serif)}
+.diff{margin-top:7px;font-size:13.5px;background:#f7f8fd;border-radius:8px;padding:8px 10px;overflow-wrap:anywhere}
+.diff s{color:var(--red);text-decoration-thickness:1.5px}
+.diff ins{text-decoration:none;color:var(--grn);font-weight:600;background:var(--grn-l);border-radius:4px;padding:0 4px}
+.diff small{display:block;color:var(--muted);margin-bottom:4px;font-size:12.5px}
+.fact{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center}
+.trail{margin-top:8px;font-size:13px;color:var(--muted);border-top:1px solid var(--line);padding-top:7px}
+.trail b{color:var(--ink)}
+.row2{display:flex;gap:8px;margin-top:8px;align-items:center}
+.row2 .in{flex:1;padding:6px 10px}
+.untied{margin-top:26px}
+.untied h2{font:600 19px var(--serif);color:var(--ink);margin:0 0 10px}
+.untied .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:12px}
+.clean{display:flex;gap:14px;align-items:center;background:var(--grn-l);border:1px solid #a9dcc3;color:#06452c;border-radius:12px;padding:16px 18px}
+.edit-sheet{padding:30px 34px}
+.activity{margin-top:30px}
+.tl{list-style:none;margin:0;padding:0 0 0 18px;border-left:2px solid var(--line2)}
+.tl li{position:relative;margin:0 0 14px;padding-left:12px}
+.tl li::before{content:"";position:absolute;left:-25px;top:6px;width:10px;height:10px;border-radius:50%;background:var(--ink);border:2px solid var(--canvas)}
+.tl small{color:var(--muted);display:block}
+/* docs list */
+.filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.pillb{border:1px solid var(--line2);background:#fff;border-radius:999px;padding:5px 14px;cursor:pointer;font-weight:600;color:var(--muted)}
+.pillb[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:#fff}
+.dlist{display:flex;flex-direction:column;gap:10px}
+.drow{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:18px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 18px;cursor:pointer;text-align:left;width:100%}
+.drow:hover{border-color:var(--pencil);box-shadow:0 10px 24px -18px rgba(48,80,240,.7)}
+.drow b{font:600 18px/1.25 var(--serif);color:var(--ink)}
+.drow small{display:block;color:var(--muted)}
+.dots{display:flex;gap:10px;align-items:center;font-size:13px;color:var(--muted)}
+.needs{background:var(--pencil);color:#fff}
+/* insights */
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:20px}
+.tile{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.tile b{display:block;font:600 36px/1 var(--serif);color:var(--ink);margin-bottom:6px}
+.tile.drop2 b{font-size:32px}.tile.drop2 .arr{color:var(--grn)}
+.clar{display:grid;grid-template-columns:minmax(0,1.5fr) 150px 110px;gap:16px;padding:14px 0;border-top:1px solid var(--line);align-items:start}
+.clar:first-of-type{border-top:0}
+.clar .t{font:400 16px/1.45 var(--serif);color:var(--ink)}
+.clar .t code{font:700 12px var(--sans);background:var(--ink);color:#fff;border-radius:6px;padding:2px 7px;margin-right:8px;vertical-align:1px}
+.clar q{quotes:none;display:block;font:italic 14px/1.4 var(--serif);color:var(--muted);margin-top:6px}
+.stack{display:flex;height:12px;border-radius:6px;overflow:hidden;background:#e7eaf5;margin-top:4px}
+.stack i{display:block}.stack .a{background:var(--grn)}.stack .d{background:#e0950a}
+.legend{display:flex;gap:16px;color:var(--muted);font-size:13px;margin-bottom:6px}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.legend .a::before{background:var(--grn)}.legend .d::before{background:#e0950a}
+.cats{display:flex;flex-direction:column;gap:10px}
+.cat{display:grid;grid-template-columns:110px 1fr 30px;gap:12px;align-items:center}
+.cat div{height:10px;border-radius:5px;background:var(--pencil)}
+.twocol{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:18px;align-items:start}
+/* brand */
+.sw{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.sw div{height:84px;border-radius:12px;border:1px solid var(--line);padding:10px;display:flex;align-items:flex-end;font-weight:600;font-size:13px}
+.clause{display:flex;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+.clause:first-of-type{border-top:0}
+.clause code{font:700 12px var(--sans);background:var(--ink);color:#fff;border-radius:6px;padding:2px 7px;height:22px;flex:none;margin-top:3px}
+.clause p{margin:0;font:400 16.5px/1.5 var(--serif)}
+.facts{width:100%;border-collapse:collapse}
+.facts td,.facts th{padding:9px 6px;border-top:1px solid var(--line);text-align:left;vertical-align:top;font-size:14px}
+.facts th{font-weight:600;color:var(--muted);border-top:0;font-size:13px}
+.pair{display:flex;gap:8px;align-items:center;padding:6px 0;border-top:1px solid var(--line);font-size:14.5px}
+.pair:first-of-type{border-top:0}
+.pair s{color:var(--red)}.pair b{color:var(--grn)}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:11px 18px;border-radius:10px;z-index:20;box-shadow:0 14px 30px -12px rgba(0,0,0,.5)}
+/* one orchestrated moment: marks are drawn in once after a check */
+@media (prefers-reduced-motion:no-preference){
+ .reveal .seg{animation:draw .7s ease-out both;animation-delay:calc(var(--n,0)*90ms)}
+ @keyframes draw{from{background-color:transparent;text-decoration-color:transparent}}
+ .reveal .badge{animation:pop .35s ease-out both;animation-delay:calc(var(--n,0)*90ms + 250ms)}
+ @keyframes pop{from{transform:scale(0)}}
+}
+@media(max-width:1060px){
+ .proof,.compose,.twocol{grid-template-columns:1fr}
+ .margin{display:flex;flex-direction:column;gap:12px;height:auto !important}
+ .mcard{position:static !important}
+ .sheet{padding:26px 22px 32px}
+}
+@media(max-width:820px){
+ .app{grid-template-columns:minmax(0,1fr)}
+ .rail{position:static;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center;padding:12px 14px;gap:10px}
+ .logo{flex:1}.nav{flex-direction:row;overflow-x:auto;width:100%;order:3;padding-bottom:2px}.nav button{flex:none}.nav button{padding:8px 11px;white-space:nowrap}
+ .acting{margin:0 0 0 auto}.acting h3,.demo{display:none}
+ .roles{flex-direction:row}.role{padding:4px 8px 4px 5px;gap:6px}.role span{display:none}.role b{font-size:13px}.role i{width:24px;height:24px;font-size:12px}
+ .next .btn{width:100%;justify-content:center}.fit{padding:6px 12px 6px 8px}.sheetbar .btn{flex:1 1 auto;justify-content:center}
+ main{padding:18px 14px 60px}
+ .drow{grid-template-columns:1fr}
+ .clar{grid-template-columns:1fr}
+ .top h1,.dochead h1{font-size:25px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+ <aside class="rail">
+  <div class="logo">
+   <svg width="34" height="34" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#fff"/><circle cx="14.5" cy="14.5" r="7" fill="none" stroke="#0F1A44" stroke-width="2.6"/><path d="M19.8 19.8l6 6" stroke="#3050F0" stroke-width="3.2" stroke-linecap="round"/><path d="M11.3 14.6l2.2 2.2 4-4.4" fill="none" stroke="#3050F0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+   <div><b>BrandLens</b><small id="orgname"></small></div>
+  </div>
+  <nav class="nav" id="nav" aria-label="Sections"></nav>
+  <div class="acting">
+   <h3>Acting as</h3>
+   <div class="roles" id="roles"></div>
+   <p class="demo">Demo mode. No login needed. Switch roles to see each step of the workflow.</p>
+  </div>
+ </aside>
+ <main id="app"></main>
+</div>
+<div id="live" aria-live="polite"></div>
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const S={role:'creator',tab:'work',brand:null,sub:null,samples:[],mode:'compose',notice:'',err:'',dismissOpen:null,filter:'all',
+  draft:{title:'',channel:'Social',text:'',colours:'',image_colours:[],alt:0},reveal:false};
+const STATUS={draft:'Draft',in_review:'In review',approved:'Approved',changes_requested:'Changes requested'};
+const ROLE={creator:{n:'Creator',who:'Riya Sharma',d:'Writes and fixes',i:'R'},reviewer:{n:'Reviewer',who:'Karan Mehta',d:'Verifies claims',i:'K'},manager:{n:'Manager',who:'Anita Desai',d:'Approves content',i:'A'}};
+const CAT={tone:'Tone',terminology:'Terminology',messaging:'Messaging',visual:'Visual identity',accessibility:'Accessibility',claim:'Claim'};
+const ICON={
+ work:'<path d="M4 20l4-1 10-10a2.1 2.1 0 00-3-3L5 16l-1 4z"/><path d="M13.5 7.5l3 3"/>',
+ docs:'<path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M10 12h5M10 16h5"/>',
+ ins:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+ brand:'<circle cx="8" cy="9" r="4"/><circle cx="16" cy="9" r="4"/><circle cx="12" cy="15" r="4"/>'};
+const ic=(k,s=20)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[k]}</svg>`;
+async function api(path,opt={}){
+  const o={...opt,headers:{'X-Role':S.role,...(opt.body&&!(opt.body instanceof FormData)?{'Content-Type':'application/json'}:{})}};
+  if(o.body&&!(o.body instanceof FormData))o.body=JSON.stringify(o.body);
+  const r=await fetch('/api'+path,o);const j=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error(typeof j.detail==='string'?j.detail:'Something went wrong. Try again.');return j;
+}
+function toast(m){const t=document.createElement('div');t.className='toast';t.setAttribute('role','status');t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),2800)}
+const parseColours=t=>t.split('\n').map(l=>l.split(/[,\s]+/).filter(Boolean)).filter(p=>p.length>=2).map(p=>[p[0],p[1]]);
+function clauseText(id){const c=S.brand.clauses.find(c=>c.id===id);if(c)return c.text;
+ const f=S.brand.facts.find(f=>f.id===id);if(f)return 'Approved fact: '+f.statement;
+ return({'WCAG-1.4.3':'Text needs a contrast ratio of at least 4.5:1 (WCAG 2.1 AA).','WCAG-1.1.1':'Every image needs alternative text (WCAG 2.1).','PALETTE':'Only approved palette colours may be used.','NO-APPROVED-FACT':'Claims need an approved fact behind them.','UNGROUNDED':'AI suggestion without a matching rule. Needs a person to judge it.'})[id]||''}
+const editable=()=>!S.sub||(['draft','changes_requested'].includes(S.sub.status)&&S.sub.is_latest);
+function fitScore(fs){const h=fs.filter(f=>f.severity==='high').length,m=fs.filter(f=>f.severity==='medium').length,l=fs.length-h-m;return Math.max(0,100-(h*8+m*3+l*1))}
+function ring(score){const c=2*Math.PI*24,col=score>=85?'#0b6b45':score>=60?'#c77700':'#c4281c';
+ return `<svg width="62" height="62" viewBox="0 0 62 62" role="img" aria-label="Brand fit ${score} out of 100"><circle cx="31" cy="31" r="24" fill="none" stroke="#e4e8f4" stroke-width="6"/><circle cx="31" cy="31" r="24" fill="none" stroke="${col}" stroke-width="6" stroke-linecap="round" stroke-dasharray="${c*score/100} ${c}" transform="rotate(-90 31 31)"/><text x="31" y="36" text-anchor="middle" font-family="Instrument Sans,sans-serif" font-weight="700" font-size="17" fill="#101936">${score}</text></svg>`}
+/* ---- proof text with nested marks ---- */
+function proofHTML(text,fs){
+ const pos=fs.map((f,i)=>({i,s:f.start,e:f.end,sev:f.severity,len:f.end-f.start})).filter(x=>x.s!=null&&x.e!=null&&x.e>x.s);
+ const cuts=new Set([0,text.length]);pos.forEach(x=>{cuts.add(x.s);cuts.add(x.e)});
+ const b=[...cuts].sort((a,c)=>a-c);let out='',n=0;
+ for(let k=0;k<b.length-1;k++){
+  const s=b[k],e=b[k+1],seg=text.slice(s,e),cov=pos.filter(x=>x.s<=s&&x.e>=e);
+  if(cov.length){const sh=cov.reduce((a,c)=>c.len<a.len?c:a);const cls=sh.len>45?'tint':'ul';
+   const under=cov.find(x=>x.len>45&&sh.len<=45);
+   out+=`<span class="seg ${cls} ${under&&sh.len<=45?sh.sev:sh.sev}" style="--n:${n++}" data-f="${sh.i}">${esc(seg)}</span>`}
+  else out+=esc(seg);
+  pos.filter(x=>x.e===e).forEach(x=>out+=`<sup class="badge ${x.sev}" style="--n:${x.i}" data-f="${x.i}" title="Finding ${x.i+1}">${x.i+1}</sup>`);
+ }
+ return out;
+}
+/* ---- finding card ---- */
+function fcard(f,i){
+ const a=S.sub.actions[i],sg=S.sub.signoffs[i],isDraft=editable(),settled=a&&a.action==='dismissed';
+ const canApply=isDraft&&S.role==='creator'&&f.replacement!=null&&f.start!=null&&!a;
+ return `<article class="fcard ${f.severity} ${settled?'settled':''}" data-f="${i}" id="f${i}" tabindex="-1">
+  <div class="fhead"><span class="fno ${f.severity}">${i+1}</span><span class="fcat">${CAT[f.category]||esc(f.category)}</span>
+   <span class="chip c-${f.severity}">${f.severity}</span>${f.needs_human?'<span class="chip c-human">Needs reviewer</span>':''}${f.origin==='ai'?'<span class="chip c-low">AI</span>':''}</div>
+  ${f.start==null?`<p class="freason" style="margin-top:8px"><b>${esc(f.quote)}</b></p>`:''}
+  <p class="freason">${esc(f.reason)}</p>
+  <p class="rule"><code>${esc(f.source_id)}</code><em>${esc(clauseText(f.source_id))}</em></p>
+  ${f.replacement!=null?`<div class="diff"><small>${esc(f.suggestion||'Suggested fix')}</small><s>${esc(f.quote.length>110?f.quote.slice(0,110)+'…':f.quote)}</s> → <ins>${esc(f.replacement.length>110?f.replacement.slice(0,110)+'…':f.replacement)}</ins></div>`
+   :f.suggestion?`<div class="diff"><small>Suggested fix</small>${esc(f.suggestion)}</div>`:''}
+  ${a?`<div class="trail"><b>${a.action==='accepted'?'Fix accepted':'Dismissed'}</b>${a.reason?' because: '+esc(a.reason):''}</div>`:''}
+  ${sg?`<div class="trail"><b>Reviewer ${sg.verdict==='verified'?'verified this claim':'rejected this claim'}</b>${sg.note?': '+esc(sg.note):''}</div>`:''}
+  ${S.role==='creator'&&isDraft&&(canApply||!a)?`<div class="row2">${canApply?`<button class="btn sm" data-apply="${i}">Apply fix</button>`:''}${!a?`<button class="btn ghost sm" data-dis="${i}">Dismiss</button>`:''}</div>
+   ${S.dismissOpen===i?`<div class="row2"><input class="in" id="dr${i}" placeholder="Why is it fine to keep this?" aria-label="Reason for dismissing"><button class="btn sm dark" data-disok="${i}">Confirm</button></div>`:''}`:''}
+  ${S.role==='reviewer'&&S.sub.status==='in_review'&&f.needs_human?`<div class="row2"><input class="in" id="sn${i}" placeholder="Note (required to reject)" aria-label="Reviewer note"></div>
+   <div class="row2"><button class="btn good sm" data-sign="${i}|verified">Verify claim</button><button class="btn ghost sm" data-sign="${i}|rejected">Reject</button></div>`:''}
+ </article>`;
+}
+/* ---- views ---- */
+function nextPanel(){
+ const s=S.sub,fs=s.findings;
+ const hi=fs.filter((f,i)=>f.severity==='high'&&(s.actions[i]||{}).action!=='dismissed').length;
+ const need=fs.filter(f=>f.needs_human),pend=fs.filter((f,i)=>f.needs_human&&(s.signoffs[i]||{}).verdict!=='verified').length;
+ if(['draft','changes_requested'].includes(s.status)&&s.is_latest){
+  if(S.role==='creator')return `<div class="next"><p>${hi?`<b>${hi} high-severity ${hi>1?'findings':'finding'}</b> must be fixed and re-checked, or dismissed with a reason, before this can go for approval.`:'<b>Ready to submit.</b> No high-severity findings are open.'}</p><button class="btn" id="submit" ${hi||S.mode==='edit'?'disabled':''}>Submit for approval</button></div>`;
+  return `<div class="next"><p>This draft is still with the creator. Switch to <b>Creator</b> to work on it.</p></div>`;
+ }
+ if(s.status==='in_review'){
+  if(S.role==='manager')return `<div class="next" style="align-items:flex-start"><p><b>${need.length?`${need.length-pend} of ${need.length} claims verified.`:'No claims need verification.'}</b> ${pend?`Approval unlocks after a reviewer verifies the remaining ${pend}.`:'Approve to release it for publishing, or send it back with a comment.'}<br><textarea id="mc" placeholder="Comment (required when requesting changes)" aria-label="Comment"></textarea></p><button class="btn good" id="approve" ${pend?'disabled':''}>Approve</button><button class="btn ghost" id="reqch">Request changes</button></div>`;
+  if(S.role==='reviewer')return `<div class="next"><p><b>${pend} of ${need.length} flagged claims</b> still need your verdict. Check each against the approved facts and verify or reject it in the margin.</p></div>`;
+  return `<div class="next"><p>Submitted for approval. A reviewer verifies the flagged claims, then a manager decides.</p></div>`;
+ }
+ if(s.status==='approved')return `<div class="next"><p><b>Approved.</b> This version is cleared to publish. The full trail is kept below.</p></div>`;
+ return `<div class="next"><p>You are viewing an earlier version.</p></div>`;
+}
+function stepper(){
+ const st=S.sub.status;const ix={draft:0,changes_requested:0,in_review:1,approved:2}[st];
+ const labels=['Draft','In review','Approved'];
+ return `<div class="steps" aria-label="Progress">${labels.map((l,i)=>`<div class="step ${i<ix?'done':i===ix?(st==='changes_requested'?'bad':(st==='approved'?'done':'now')):''}"><i>${i<ix||(st==='approved'&&i===2)?'✓':i+1}</i>${l==='Draft'&&st==='changes_requested'?'Changes requested':l}</div>${i<2?'<span class="bar"></span>':''}`).join('')}</div>`;
+}
+function viewCompose(){
+ const d=S.draft;
+ $('#app').innerHTML=`<div class="top"><div><h1>Check content before it goes out</h1><p>Paste a post, ad, email or document. BrandLens compares it with ${esc(S.brand.name.replace(' (demo)',''))}'s approved guidelines, facts and visual identity, and explains every issue it finds.</p></div></div>
+ ${S.err?`<div class="err" role="alert">${esc(S.err)}</div>`:''}${S.notice?`<div class="note">${esc(S.notice)}</div>`:''}
+ <div class="compose"><div class="paper">
+  <label class="field"><span>Title</span><input class="in" id="title" value="${esc(d.title)}" placeholder="For example, Summer sale email"></label>
+  <div class="field"><span>Channel</span><div class="seg3" role="group" aria-label="Channel">${['Social','Email','Web','Ad','Document'].map(c=>`<button type="button" data-ch="${c}" aria-pressed="${d.channel===c}">${c}</button>`).join('')}</div></div>
+  <label class="field"><span>Content</span><textarea class="doc" id="text" placeholder="Paste your draft here">${esc(d.text)}</textarea></label>
+  ${visualInputs()}
+  <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn" id="check">Check content</button></div>
+ </div>
+ <div><div class="panel" style="margin-bottom:16px"><h2>Start with a sample</h2><div class="samples">${S.samples.map((x,i)=>`<button class="sample" data-sample="${i}"><b>${esc(x.title)}</b><p>${esc(x.text.slice(0,92))}${x.text.length>92?'…':''}</p><span class="chip c-draft">${esc(x.channel)}</span></button>`).join('')}</div></div>
+ <div class="panel"><h2>What gets checked</h2><ul class="covers"><li>${dot('high')}Unsupported claims</li><li>${dot('medium')}Tone of voice</li><li>${dot('medium')}Approved terms</li><li>${dot('medium')}Messaging</li><li>${dot('low')}Visual identity</li><li>${dot('low')}Accessibility</li></ul></div></div></div>`;
+ bindShared();
+}
+const dot=s=>`<span class="dot ${s}"></span>`;
+function visualInputs(){const d=S.draft;
+ return `<details class="more" ${d.colours||d.alt||d.image_colours.length?'open':''}><summary>Visual details and file upload</summary>
+ <label class="drop" id="drop"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5M4 20h16"/></svg><span>Drop a .docx, .pdf, .txt or image here, or <u>browse</u></span><input type="file" id="file" accept=".docx,.pdf,.txt,.png,.jpg,.jpeg"></label>
+ ${d.image_colours.length?`<p class="rule" style="margin:8px 0">Colours read from the image: ${d.image_colours.map(c=>`<span style="display:inline-block;width:16px;height:16px;border-radius:4px;background:${c};border:1px solid var(--line);vertical-align:-3px"></span> ${c}`).join(' &nbsp;')}</p>`:''}
+ <label class="field" style="margin-top:12px"><span>Text and background colours, one pair per line</span><textarea class="in" id="cols" rows="2" placeholder="#777777, #FFFFFF">${esc(d.colours)}</textarea></label>
+ <label class="field"><span>Images without alternative text</span><input class="in" id="alt" type="number" min="0" value="${d.alt}" style="max-width:120px"></label></details>`}
+function viewProof(){
+ const s=S.sub,fs=s.findings,ed=editable(),edit=S.mode==='edit',score=fitScore(fs);
+ const hi=fs.filter(f=>f.severity==='high').length,me=fs.filter(f=>f.severity==='medium').length,lo=fs.length-hi-me;
+ const inText=fs.map((f,i)=>({f,i})).filter(x=>x.f.start!=null).sort((a,b)=>a.f.start-b.f.start),untied=fs.map((f,i)=>({f,i})).filter(x=>x.f.start==null);
+ const canFix=ed&&S.role==='creator'&&!edit&&fs.some((f,i)=>f.replacement!=null&&f.start!=null&&!s.actions[i]);
+ $('#app').innerHTML=`
+ <div class="dochead"><div style="flex:1;min-width:260px"><h1>${esc(s.title)}</h1>
+   <div class="meta"><span class="chip c-draft">${esc(s.channel)}</span>${s.versions.map(v=>`<button class="vtab" data-v="${v.id}" ${v.id===s.id?'aria-current="true"':''}>v${v.version}</button>`).join('')}<span>by ${esc(s.author)}</span></div></div>
+   <div class="fit" title="Brand fit starts at 100 and drops with each finding: 8 for high, 3 for medium, 1 for low severity.">${ring(score)}<div><b>Brand fit</b><span>${hi} high, ${me} medium, ${lo} low</span></div></div></div>
+ ${stepper()}
+ ${S.err?`<div class="err" role="alert">${esc(S.err)}</div>`:''}${S.notice?`<div class="note">${esc(S.notice)}</div>`:''}
+ ${nextPanel()}
+ <div class="proof"><div class="sheetwrap">
+  <div class="sheetbar">${ed&&S.role==='creator'?(edit?`<button class="btn" id="check">Re-check as new version</button><button class="btn ghost" id="canceledit">Cancel</button>`:`<button class="btn ghost" id="editbtn">Edit text</button>${canFix?'<button class="btn" id="applyall">Apply all suggested fixes</button>':''}`):''}<button class="btn ghost" id="newdoc" style="margin-left:auto">New document</button></div>
+  ${edit?`<div class="paper edit-sheet"><textarea class="doc" id="text" aria-label="Content">${esc(S.draft.text)}</textarea><div style="height:12px"></div>${visualInputs()}</div>`
+  :`<div class="sheet ${S.reveal?'reveal':''}" id="sheet"><div class="kicker">${dot(hi?'high':me?'medium':'low')}<span>${fs.length?`${fs.length} ${fs.length===1?'finding':'findings'} marked. Select a mark to see why.`:'Nothing to mark in this version.'}</span></div><div class="body">${proofHTML(s.text,fs)}</div></div>`}
+  ${untied.length&&!edit?`<section class="untied"><h2>Visual and accessibility</h2><div class="grid">${untied.map(x=>fcard(x.f,x.i)).join('')}</div></section>`:''}
+  ${!fs.length&&!edit?`<div class="clean" style="margin-top:18px"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12.5l2.7 2.7L16 9.5"/></svg><div><b>This version matches the approved guidelines.</b><br>It can go for approval as it is.</div></div>`:''}
+ </div>
+ <div class="margin" id="margin" aria-label="Findings">${edit?'':inText.map(x=>`<div class="mcard" data-f="${x.i}">${fcard(x.f,x.i)}</div>`).join('')}</div></div>
+ <section class="activity"><div class="panel"><h2>Activity</h2><ol class="tl">${s.events.slice().reverse().map(e=>`<li><b>${esc(e.kind.replace('_',' ').replace(/^./,c=>c.toUpperCase()))}</b> by ${esc(e.actor)}<br>${esc(e.detail)}<small>${new Date(e.at*1000).toLocaleString()}</small></li>`).join('')}</ol></div></section>`;
+ bindShared();bindProof();S.reveal=false;
+ requestAnimationFrame(layoutMargin);if(document.fonts)document.fonts.ready.then(layoutMargin);
+}
+function layoutMargin(){
+ const m=$('#margin');if(!m||!matchMedia('(min-width:1061px)').matches)return;
+ const cards=$$('#margin .mcard');const mt=m.getBoundingClientRect().top;
+ const items=cards.map(c=>{const b=$(`#sheet .badge[data-f="${c.dataset.f}"]`);return{c,top:b?b.getBoundingClientRect().top-mt-10:0}});
+ let y=0;items.forEach(it=>{const t=Math.max(it.top,y);it.c.style.top=t+'px';y=t+it.c.offsetHeight+12});m.style.height=y+'px';
+}
+addEventListener('resize',()=>{clearTimeout(layoutMargin.t);layoutMargin.t=setTimeout(layoutMargin,80)});
+function setFocus(i,on){$$(`[data-f="${i}"]`).forEach(e=>e.classList.toggle('focus',on))}
+function bindProof(){
+ $$('#sheet .seg,#sheet .badge').forEach(e=>{e.onclick=()=>{const i=e.dataset.f;const c=$('#f'+i);if(c){c.scrollIntoView({behavior:'smooth',block:'center'});setFocus(i,true);setTimeout(()=>setFocus(i,false),1800)}};
+  e.onmouseenter=()=>setFocus(e.dataset.f,true);e.onmouseleave=()=>setFocus(e.dataset.f,false)});
+ $$('.fcard').forEach(c=>{c.onmouseenter=()=>setFocus(c.dataset.f,true);c.onmouseleave=()=>setFocus(c.dataset.f,false)});
+ $$('[data-v]').forEach(b=>b.onclick=()=>open(+b.dataset.v));
+ if($('#editbtn'))$('#editbtn').onclick=()=>{S.mode='edit';S.notice='';render()};
+ if($('#canceledit'))$('#canceledit').onclick=()=>{S.mode='proof';S.err='';resetDraftFromSub();render()};
+ if($('#newdoc'))$('#newdoc').onclick=()=>{S.sub=null;S.mode='compose';S.err='';S.notice='';S.draft={title:'',channel:'Social',text:'',colours:'',image_colours:[],alt:0};render()};
+ $$('[data-apply]').forEach(b=>b.onclick=()=>applyFixes([+b.dataset.apply]));
+ if($('#applyall'))$('#applyall').onclick=()=>applyFixes(S.sub.findings.map((f,i)=>i).filter(i=>S.sub.findings[i].replacement!=null&&S.sub.findings[i].start!=null&&!S.sub.actions[i]));
+ $$('[data-dis]').forEach(b=>b.onclick=()=>{S.dismissOpen=+b.dataset.dis;render();const x=$('#dr'+S.dismissOpen);if(x)x.focus()});
+ $$('[data-disok]').forEach(b=>b.onclick=()=>post(`/submissions/${S.sub.id}/actions`,{index:+b.dataset.disok,action:'dismissed',reason:$('#dr'+b.dataset.disok).value},()=>{S.dismissOpen=null}));
+ $$('[data-sign]').forEach(b=>b.onclick=()=>{const[i,v]=b.dataset.sign.split('|');post(`/submissions/${S.sub.id}/signoff`,{index:+i,verdict:v,note:$('#sn'+i).value})});
+ if($('#submit'))$('#submit').onclick=()=>post(`/submissions/${S.sub.id}/submit`,{},()=>toast('Submitted for approval'));
+ if($('#approve'))$('#approve').onclick=()=>post(`/submissions/${S.sub.id}/decision`,{decision:'approve',comment:$('#mc').value},()=>toast('Approved'));
+ if($('#reqch'))$('#reqch').onclick=()=>post(`/submissions/${S.sub.id}/decision`,{decision:'request_changes',comment:$('#mc').value},()=>toast('Changes requested'));
+}
+function readForm(){const d=S.draft;
+ if($('#title'))d.title=$('#title').value;if($('#text'))d.text=$('#text').value;if($('#cols'))d.colours=$('#cols').value;if($('#alt'))d.alt=+$('#alt').value||0}
+function bindShared(){
+ $$('[data-ch]').forEach(b=>b.onclick=()=>{readForm();S.draft.channel=b.dataset.ch;render()});
+ $$('[data-sample]').forEach(b=>b.onclick=()=>{const x=S.samples[b.dataset.sample];S.draft={title:x.title,channel:x.channel,text:x.text,colours:x.colours.map(p=>p.join(', ')).join('\n'),image_colours:[],alt:x.images_missing_alt};S.err='';render();toast('Sample loaded. Press Check content.')});
+ if($('#check'))$('#check').onclick=check;
+ const f=$('#file');if(f){f.onchange=e=>upload(e.target.files[0]);const dr=$('#drop');
+  ['dragenter','dragover'].forEach(t=>dr.addEventListener(t,e=>{e.preventDefault();dr.classList.add('over')}));
+  ['dragleave','drop'].forEach(t=>dr.addEventListener(t,e=>{e.preventDefault();dr.classList.remove('over')}));
+  dr.addEventListener('drop',e=>{if(e.dataTransfer.files[0])upload(e.dataTransfer.files[0])})}
+}
+async function upload(file){if(!file)return;readForm();const fd=new FormData();fd.append('file',file);
+ try{const r=await api('/extract',{method:'POST',body:fd});if(r.text)S.draft.text=r.text;S.draft.image_colours=r.image_colours||[];S.draft.alt=r.images_missing_alt||S.draft.alt;
+  if(!S.draft.title)S.draft.title=file.name.replace(/\.[^.]+$/,'');S.err='';toast('Read '+r.filename)}catch(x){S.err=x.message}render()}
+async function check(){
+ readForm();const d=S.draft;
+ const body={title:(d.title||'Untitled').trim(),channel:d.channel,text:d.text,colours:parseColours(d.colours),image_colours:d.image_colours,images_missing_alt:d.alt};
+ if(S.sub){body.doc_id=S.sub.doc_id;body.channel=S.sub.channel;body.title=S.sub.title}
+ try{S.sub=await api('/submissions',{method:'POST',body});S.mode='proof';S.err='';S.notice='';S.reveal=true;resetDraftFromSub()}catch(e){S.err=e.message}
+ render();window.scrollTo({top:0,behavior:'smooth'});
+}
+function resetDraftFromSub(){const s=S.sub;if(!s)return;S.draft={title:s.title,channel:s.channel,text:s.text,colours:(s.req.colours||[]).map(p=>p.join(', ')).join('\n'),image_colours:s.req.image_colours||[],alt:s.req.images_missing_alt||0}}
+async function post(path,body,after){try{S.sub=await api(path,{method:'POST',body});S.err='';if(after)after()}catch(e){S.err=e.message}render()}
+async function applyFixes(idx){
+ const s=S.sub;let t=s.text;const list=idx.map(i=>({i,...s.findings[i]})).sort((a,b)=>b.start-a.start);let last=Infinity,n=0;
+ for(const f of list){if(f.end>last)continue;t=t.slice(0,f.start)+f.replacement+t.slice(f.end);last=f.start;n++;
+  try{await api(`/submissions/${s.id}/actions`,{method:'POST',body:{index:f.i,action:'accepted'}})}catch(e){}}
+ S.sub=await api('/submissions/'+s.id);S.draft.text=t;S.mode='edit';S.err='';
+ S.notice=`${n} ${n===1?'fix was':'fixes were'} applied to the text. Read it through, then press Re-check as new version.`;render();window.scrollTo({top:0,behavior:'smooth'});
+}
+async function open(id){S.sub=await api('/submissions/'+id);S.mode='proof';S.err='';S.notice='';S.dismissOpen=null;resetDraftFromSub();S.tab='work';render();window.scrollTo(0,0)}
+/* ---- documents ---- */
+async function viewDocs(){
+ const docs=await api('/submissions');const f=S.filter;
+ const mine=d=>(S.role==='creator'&&['draft','changes_requested'].includes(d.status))||((S.role==='reviewer'||S.role==='manager')&&d.status==='in_review');
+ const list=docs.filter(d=>f==='all'||d.status===f);const nm=docs.filter(mine).length;
+ $('#app').innerHTML=`<div class="top"><div><h1>Documents</h1><p>${nm?`${nm} ${nm===1?'document needs':'documents need'} you as ${ROLE[S.role].n.toLowerCase()}.`:'Every document checked in this workspace, newest first.'}</p></div><div class="sp"></div><button class="btn" id="go">Check new content</button></div>
+ <div class="filters" role="group" aria-label="Filter">${['all','draft','in_review','changes_requested','approved'].map(s=>`<button class="pillb" data-f="${s}" aria-pressed="${f===s}">${s==='all'?'All':STATUS[s]}</button>`).join('')}</div>
+ <div class="dlist">${list.map(d=>`<button class="drow" data-open="${d.id}"><div><b>${esc(d.title)}</b><small>${esc(d.channel)} · v${d.version} · ${esc(d.author)} · ${new Date(d.created_at*1000).toLocaleDateString()}</small></div>
+  <div class="dots">${d.findings?`${dot(d.high?'high':'medium')} ${d.findings} ${d.findings===1?'finding':'findings'}`:'No findings'}</div>
+  <div style="display:flex;gap:6px;align-items:center">${mine(d)?'<span class="chip needs">Needs you</span>':''}<span class="chip c-${d.status}">${STATUS[d.status]}</span></div></button>`).join('')||'<div class="panel">No documents match this filter.</div>'}</div>`;
+ $$('[data-f]').forEach(b=>b.onclick=()=>{S.filter=b.dataset.f;render()});$$('[data-open]').forEach(r=>r.onclick=()=>open(+r.dataset.open));
+ $('#go').onclick=()=>{S.sub=null;S.mode='compose';S.tab='work';render()};
+}
+/* ---- insights ---- */
+async function viewIns(){
+ const d=await api('/insights'),max=Math.max(1,...Object.values(d.categories));
+ $('#app').innerHTML=`<div class="top"><div><h1>Insights</h1><p>What the team gets wrong most often, and which guidelines people keep pushing back on.</p></div></div>
+ <div class="tiles"><div class="tile"><b>${d.documents}</b>documents checked</div><div class="tile"><b>${d.approved}</b>approved</div><div class="tile"><b>${d.in_review}</b>waiting for approval</div>
+  <div class="tile drop2"><b>${d.avg_first} <span class="arr">→</span> ${d.avg_approved}</b>findings per draft, first check to approval</div></div>
+ <div class="twocol"><div class="panel"><h2>Where the guidelines are clear, and where they are not</h2>
+  <div class="legend"><span class="a">Fixed by the creator</span><span class="d">Dismissed with a reason</span></div>
+  ${d.rules.map(r=>{const t=r.accepted+r.dismissed;return `<div class="clar"><div class="t"><code>${esc(r.source_id)}</code>${esc(r.text||clauseText(r.source_id))}${r.unclear&&r.reasons.length?`<q>${r.reasons.map(x=>'“'+esc(x)+'”').join(' ')}</q>`:''}</div>
+   <div><div class="stack" title="${r.accepted} fixed, ${r.dismissed} dismissed">${t?`<i class="a" style="width:${r.accepted/t*100}%"></i><i class="d" style="width:${r.dismissed/t*100}%"></i>`:''}</div><small style="color:var(--muted)">${r.shown} shown, ${r.accepted} fixed, ${r.dismissed} dismissed</small></div>
+   <div>${r.unclear?'<span class="chip c-medium">Reword this rule</span>':'<span class="chip c-approved">Clear</span>'}</div></div>`}).join('')}</div>
+ <div class="panel"><h2>Findings by category</h2><div class="cats">${Object.entries(d.categories).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="cat"><span>${CAT[k]||esc(k)}</span><div style="width:${v/max*100}%"></div><b>${v}</b></div>`).join('')}</div></div></div>`;
+}
+/* ---- brand ---- */
+function viewBrand(){
+ const b=S.brand,names=['Navy','White','Amber'];
+ $('#app').innerHTML=`<div class="top"><div><h1>Brand pack</h1><p>The approved material every check is made against. Findings cite these clauses and facts by their IDs.</p></div></div>
+ <div class="twocol"><div class="panel"><h2>Guidelines</h2>${b.clauses.map(c=>`<div class="clause"><code>${esc(c.id)}</code><p>${esc(c.text)}</p></div>`).join('')}</div>
+ <div style="display:flex;flex-direction:column;gap:18px"><div class="panel"><h2>Visual identity</h2><div class="sw">${b.palette.map((c,i)=>`<div style="background:${c};color:${i===1?'#101936':'#fff'}">${names[i]||''} ${c}</div>`).join('')}</div><p style="color:var(--muted);margin:10px 0 0">Text needs at least ${b.min_contrast}:1 contrast (WCAG 2.1 AA).</p></div>
+ <div class="panel"><h2>Approved facts</h2><table class="facts"><tr><th>ID</th><th>Fact</th><th>Valid until</th></tr>${b.facts.map(f=>{const ex=f.expires&&f.expires<new Date().toISOString().slice(0,10);return `<tr><td><b>${esc(f.id)}</b></td><td>${esc(f.statement)}<br><span style="color:var(--muted);font-size:13px">${esc(f.source)}</span></td><td>${f.expires?(ex?`<span class="chip c-high">Expired ${esc(f.expires)}</span>`:esc(f.expires)):'No expiry'}</td></tr>`}).join('')}</table></div>
+ <div class="panel"><h2>Terminology</h2>${Object.entries(b.terms).map(([k,v])=>`<div class="pair"><s>${esc(k)}</s> → <b>${esc(v)}</b></div>`).join('')}</div></div></div>`;
+}
+/* ---- shell ---- */
+function render(){
+ $('#nav').innerHTML=[['work','Review workspace'],['docs','Documents'],['ins','Insights'],['brand','Brand pack']].map(([k,l])=>`<button data-t="${k}" ${S.tab===k?'aria-current="page"':''}>${ic(k)}${l}</button>`).join('');
+ $('#roles').innerHTML=Object.entries(ROLE).map(([k,r])=>`<button class="role" data-role="${k}" aria-pressed="${S.role===k}"><i>${r.i}</i><div><b>${r.n}</b><span>${r.who}</span></div></button>`).join('');
+ $$('#nav button').forEach(b=>b.onclick=()=>{readForm();S.tab=b.dataset.t;S.err='';S.notice='';render()});
+ $$('#roles button').forEach(b=>b.onclick=async()=>{readForm();S.role=b.dataset.role;S.dismissOpen=null;S.err='';if(S.sub&&S.mode!=='compose'){S.sub=await api('/submissions/'+S.sub.id);if(S.mode==='edit'&&S.role!=='creator')S.mode='proof'}render()});
+ if(S.tab==='work'){S.sub&&S.mode!=='compose'?viewProof():viewCompose()}else({docs:viewDocs,ins:viewIns,brand:viewBrand})[S.tab]();
+}
+(async()=>{S.brand=await api('/brand');S.samples=await api('/samples');$('#orgname').textContent=S.brand.name;render()})();
+</script>
+</body></html>
